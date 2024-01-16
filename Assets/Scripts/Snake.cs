@@ -5,15 +5,19 @@ using UnityEngine;
 
 public class Snake : MonoBehaviour
 {
-    public float speed = 5f;
-    public float speedMultiplier = 1.0f;
+    public float speed = 7f;
+    public float sprintMultiplier = 2.5f;
+    public float slowMultiplier = 0.4f;
     public Transform segmentPrefab;
     public static Snake instance;
 
     [HideInInspector]
+    private float _speedMultiplier = 1.0f;
     public List<Transform> _segments = new();
     private bool _isAlive = true;
     private Vector2 _direction = Vector2.right;
+    private Vector2 _cachedInput = Vector2.zero;
+    private bool _hasInput = false;
     private float _nextUpdate = 0.0f;
 
     private TextMeshProUGUI _score;
@@ -46,25 +50,77 @@ public class Snake : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.W) && _direction != Vector2.down)
-        {
-            _direction = Vector2.up;
-        }
-        else if (Input.GetKeyDown(KeyCode.S) && _direction != Vector2.up)
-        {
-            _direction = Vector2.down;
-        }
-        else if (Input.GetKeyDown(KeyCode.A) && _direction != Vector2.right)
-        {
-            _direction = Vector2.left;
-        }
-        else if (Input.GetKeyDown(KeyCode.D) && _direction != Vector2.left)
-        {
-            _direction = Vector2.right;
-        }
-        else if (Input.GetKeyDown(KeyCode.R) && !_isAlive)
+        if (Input.GetKeyDown(KeyCode.R) && !_isAlive)
         {
             Restart();
+        }
+        else if (!_isAlive)
+        {
+            return;
+        }
+
+        // Sprint
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            _speedMultiplier = 2.5f;
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            _speedMultiplier = 1.0f;
+        }
+
+        // Slow
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            _speedMultiplier = 0.3f;
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            _speedMultiplier = 1.0f;
+        }
+
+        // WASD Movement
+        if (!_hasInput)
+        {
+            if (Input.GetKeyDown(KeyCode.W) && _direction != Vector2.down)
+            {
+                _direction = Vector2.up;
+                _hasInput = true;
+            }
+            else if (Input.GetKeyDown(KeyCode.S) && _direction != Vector2.up)
+            {
+                _direction = Vector2.down;
+                _hasInput = true;
+            }
+            else if (Input.GetKeyDown(KeyCode.A) && _direction != Vector2.right)
+            {
+                _direction = Vector2.left;
+                _hasInput = true;
+            }
+            else if (Input.GetKeyDown(KeyCode.D) && _direction != Vector2.left)
+            {
+                _direction = Vector2.right;
+                _hasInput = true;
+            }
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.W) && _direction != Vector2.down)
+            {
+                _cachedInput = Vector2.up;
+            }
+            else if (Input.GetKeyDown(KeyCode.S) && _direction != Vector2.up)
+            {
+                _cachedInput = Vector2.down;
+            }
+            else if (Input.GetKeyDown(KeyCode.A) && _direction != Vector2.right)
+            {
+                _cachedInput = Vector2.left;
+            }
+            else if (Input.GetKeyDown(KeyCode.D) && _direction != Vector2.left)
+            {
+                _cachedInput = Vector2.right;
+            }
         }
     }
 
@@ -82,7 +138,15 @@ public class Snake : MonoBehaviour
 
         this.transform.position += new Vector3(_direction.x, _direction.y, 0);
 
-        _nextUpdate = Time.time + (1f / (speed * speedMultiplier));
+        _nextUpdate = Time.time + (1f / (speed * _speedMultiplier));
+        _hasInput = false;
+
+        if (_cachedInput != Vector2.zero)
+        {
+            _direction = _cachedInput;
+            _cachedInput = Vector2.zero;
+            _hasInput = true;
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
