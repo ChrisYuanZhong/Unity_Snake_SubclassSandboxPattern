@@ -742,7 +742,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6454433178904196267, guid: 2939fa9aa576d0c419ef3a1b2bcebe21, type: 3}
       propertyPath: m_LocalScale.y
-      value: 19
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 6454433178904196267, guid: 2939fa9aa576d0c419ef3a1b2bcebe21, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1315,9 +1315,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Snake
       objectReference: {fileID: 0}
+    - target: {fileID: 7007921098196426203, guid: 5263177dd954faa4fadab0e7071049c1, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7768289312905755699, guid: 5263177dd954faa4fadab0e7071049c1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7768289312905755699, guid: 5263177dd954faa4fadab0e7071049c1, type: 3}
       propertyPath: m_LocalPosition.y

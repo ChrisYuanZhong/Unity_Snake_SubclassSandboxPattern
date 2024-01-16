@@ -19,6 +19,7 @@ public class Snake : MonoBehaviour
     private Vector2 _cachedInput = Vector2.zero;
     private bool _hasInput = false;
     private float _nextUpdate = 0.0f;
+    private Vector3 _originalPosition;
 
     private TextMeshProUGUI _score;
     private GameObject _gameOver;
@@ -37,6 +38,7 @@ public class Snake : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        _originalPosition = this.transform.position;
         _segments.Add(this.transform);
         Grow();
 
@@ -197,7 +199,7 @@ public class Snake : MonoBehaviour
         this._segments.Clear();
 
         this._segments.Add(this.transform);
-        this.transform.position = Vector3.zero;
+        this.transform.position = _originalPosition == null ? Vector3.zero : _originalPosition;
         Grow();
         this._nextUpdate = 0.0f;
 
