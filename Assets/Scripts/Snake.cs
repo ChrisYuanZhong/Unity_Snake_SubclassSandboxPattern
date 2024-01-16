@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Snake : MonoBehaviour
@@ -14,6 +15,9 @@ public class Snake : MonoBehaviour
     private bool _isAlive = true;
     private Vector2 _direction = Vector2.right;
     private float _nextUpdate = 0.0f;
+
+    private TextMeshProUGUI _score;
+    private GameObject _gameOver;
 
     private void Awake()
     {
@@ -31,6 +35,12 @@ public class Snake : MonoBehaviour
     {
         _segments.Add(this.transform);
         Grow();
+
+        _score = GameObject.FindWithTag("Score").GetComponent<TextMeshProUGUI>();
+
+        _gameOver = GameObject.FindWithTag("GameOver");
+        if (_gameOver != null)
+            _gameOver.SetActive(false);
     }
 
     // Update is called once per frame
@@ -79,12 +89,19 @@ public class Snake : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Food"))
         {
+            IncreaseScore();
             Grow();
         }
         else if (collision.gameObject.CompareTag("Obstacle") || collision.gameObject.CompareTag("Player"))
         {
             Death();
         }
+    }
+
+    private void IncreaseScore()
+    {
+        if (_score != null)
+            _score.text = (int.Parse(_score.text) + 1).ToString();
     }
 
     private void Grow()
@@ -98,6 +115,9 @@ public class Snake : MonoBehaviour
     private void Death()
     {
         this._isAlive = false;
+
+        if (_gameOver != null)
+            this._gameOver.SetActive(true);
     }
 
     private void Restart()
@@ -116,5 +136,11 @@ public class Snake : MonoBehaviour
         this.transform.position = Vector3.zero;
         Grow();
         this._nextUpdate = 0.0f;
+
+        if (_gameOver != null)
+            this._gameOver.SetActive(false);
+
+        if (_score != null)
+            this._score.text = "0";
     }
 }

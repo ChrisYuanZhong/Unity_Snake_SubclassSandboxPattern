@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Obstacle
   - Food
+  - GameOver
+  - Score
   layers:
   - Default
   - TransparentFX
