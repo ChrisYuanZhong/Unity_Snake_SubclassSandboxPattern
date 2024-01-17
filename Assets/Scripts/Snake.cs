@@ -9,6 +9,8 @@ public class Snake : MonoBehaviour
     public float sprintMultiplier = 2.5f;
     public float slowMultiplier = 0.4f;
     public Transform segmentPrefab;
+    public AudioClip deathSound;
+    public AudioClip eatSound;
     public static Snake instance;
 
     [HideInInspector]
@@ -168,6 +170,9 @@ public class Snake : MonoBehaviour
     {
         if (_score != null)
             _score.text = (int.Parse(_score.text) + 1).ToString();
+
+        if (eatSound != null)
+            AudioSource.PlayClipAtPoint(eatSound, this.transform.position);
     }
 
     private void Grow()
@@ -184,6 +189,9 @@ public class Snake : MonoBehaviour
 
         if (_gameOver != null)
             this._gameOver.SetActive(true);
+
+        if (deathSound != null)
+            AudioSource.PlayClipAtPoint(deathSound, this.transform.position);
     }
 
     private void Restart()
