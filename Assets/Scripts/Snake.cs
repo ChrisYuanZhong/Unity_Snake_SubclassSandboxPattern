@@ -209,6 +209,7 @@ public class Snake : MonoBehaviour
         this._segments.Add(this.transform);
         this.transform.position = _originalPosition == null ? Vector3.zero : _originalPosition;
         Grow();
+        this._speedMultiplier = 1.0f;
         this._nextUpdate = 0.0f;
 
         if (_gameOver != null)
