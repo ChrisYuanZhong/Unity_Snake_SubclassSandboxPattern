@@ -5,50 +5,43 @@ using UnityEngine;
 
 public class Snake : MonoBehaviour
 {
+    List<Ability> abilities = new List<Ability>();
+    private int _currentAbility = 0;
+
+    public GameManager gameManager;
     public float speed = 7f;
     public float sprintMultiplier = 2.5f;
     public float slowMultiplier = 0.4f;
     public Transform segmentPrefab;
-    public AudioClip deathSound;
-    public AudioClip eatSound;
-    public static Snake instance;
 
     [HideInInspector]
-    private float _speedMultiplier = 1.0f;
+    public float _speedMultiplier = 1.0f;
     public List<Transform> _segments = new();
     private bool _isAlive = true;
-    private Vector2 _direction = Vector2.right;
+    [HideInInspector]
+    public Vector2 _direction = Vector2.right;
     private Vector2 _cachedInput = Vector2.zero;
     private bool _hasInput = false;
     private float _nextUpdate = 0.0f;
     private Vector3 _originalPosition;
 
-    private TextMeshProUGUI _score;
-    private GameObject _gameOver;
-
-    private void Awake()
-    {
-        if (instance != null)
-        {
-            Destroy(this.gameObject);
-            return;
-        }
-
-        instance = this;
-    }
-
     // Start is called before the first frame update
     void Start()
     {
+        if (gameManager == null)
+        {
+            gameManager = GameObject.FindWithTag("GameManager").GetComponent<GameManager>();
+        }
+
+        abilities.Add(new SpeedUp(this));
+        abilities.Add(new Jump(this));
+        abilities.Add(new SlowDown(this));
+
         _originalPosition = this.transform.position;
         _segments.Add(this.transform);
         Grow();
 
-        _score = GameObject.FindWithTag("Score").GetComponent<TextMeshProUGUI>();
-
-        _gameOver = GameObject.FindWithTag("GameOver");
-        if (_gameOver != null)
-            _gameOver.SetActive(false);
+        SetBodyColor(abilities[_currentAbility].BodyColor);
     }
 
     // Update is called once per frame
@@ -68,25 +61,62 @@ public class Snake : MonoBehaviour
             return;
         }
 
-        // Sprint
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        // Abilities
+        // Use scroll wheel to change abilities
+        if (Input.mouseScrollDelta.y > 0)
         {
-            _speedMultiplier = 2.5f;
+            abilities[_currentAbility].Deactivate();
+
+            _currentAbility++;
+            if (_currentAbility >= abilities.Count)
+                _currentAbility = 0;
+
+            SetBodyColor(abilities[_currentAbility].BodyColor);
+
+            print(_currentAbility);
         }
-        else if (Input.GetKeyUp(KeyCode.LeftShift))
+        else if (Input.mouseScrollDelta.y < 0)
         {
-            _speedMultiplier = 1.0f;
+            abilities[_currentAbility].Deactivate();
+
+            _currentAbility--;
+            if (_currentAbility < 0)
+                _currentAbility = abilities.Count - 1;
+
+            SetBodyColor(abilities[_currentAbility].BodyColor);
+
+            print(_currentAbility);
         }
 
-        // Slow
-        if (Input.GetKeyDown(KeyCode.LeftControl))
+        // Activate ability
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            _speedMultiplier = 0.3f;
+            abilities[_currentAbility].Activate();
         }
-        else if (Input.GetKeyUp(KeyCode.LeftControl))
+        else if (Input.GetKeyUp(KeyCode.Space))
         {
-            _speedMultiplier = 1.0f;
+            abilities[_currentAbility].Deactivate();
         }
+
+        //// Sprint
+        //if (Input.GetKeyDown(KeyCode.LeftShift))
+        //{
+        //    _speedMultiplier = 2.5f;
+        //}
+        //else if (Input.GetKeyUp(KeyCode.LeftShift))
+        //{
+        //    _speedMultiplier = 1.0f;
+        //}
+
+        //// Slow
+        //if (Input.GetKeyDown(KeyCode.LeftControl))
+        //{
+        //    _speedMultiplier = 0.3f;
+        //}
+        //else if (Input.GetKeyUp(KeyCode.LeftControl))
+        //{
+        //    _speedMultiplier = 1.0f;
+        //}
 
         // WASD Movement
         if (!_hasInput)
@@ -162,7 +192,9 @@ public class Snake : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Food"))
         {
-            IncreaseScore();
+            if (gameManager != null)
+                gameManager.IncreaseScore();
+
             Grow();
         }
         else if (collision.gameObject.CompareTag("Obstacle") || collision.gameObject.CompareTag("Player"))
@@ -171,13 +203,14 @@ public class Snake : MonoBehaviour
         }
     }
 
-    private void IncreaseScore()
+    private void SetBodyColor(Color color)
     {
-        if (_score != null)
-            _score.text = (int.Parse(_score.text) + 1).ToString();
-
-        if (eatSound != null)
-            AudioSource.PlayClipAtPoint(eatSound, this.transform.position);
+        foreach (Transform segment in _segments)
+        {
+            SpriteRenderer renderer = segment.GetComponent<SpriteRenderer>();
+            if (renderer != null)
+                renderer.color = color;
+        }
     }
 
     private void Grow()
@@ -185,18 +218,19 @@ public class Snake : MonoBehaviour
         Transform segment = Instantiate(this.segmentPrefab);
         segment.position = _segments[_segments.Count - 1].position;
 
+        // Make the new segment's color the same as the snake's color
+        SpriteRenderer renderer = segment.GetComponent<SpriteRenderer>();
+        if (renderer != null)
+            renderer.color = this.GetComponent<SpriteRenderer>().color;
+
         _segments.Add(segment);
     }
 
-    private void Death()
+    public void Death()
     {
         this._isAlive = false;
 
-        if (_gameOver != null)
-            this._gameOver.SetActive(true);
-
-        if (deathSound != null)
-            AudioSource.PlayClipAtPoint(deathSound, this.transform.position);
+        gameManager.Death();
     }
 
     private void Restart()
@@ -217,10 +251,8 @@ public class Snake : MonoBehaviour
         this._speedMultiplier = 1.0f;
         this._nextUpdate = 0.0f;
 
-        if (_gameOver != null)
-            this._gameOver.SetActive(false);
+        SetBodyColor(abilities[_currentAbility].BodyColor);
 
-        if (_score != null)
-            this._score.text = "0";
+        gameManager.Restart();
     }
 }
